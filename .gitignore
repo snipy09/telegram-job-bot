@@ -26,3 +26,9 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# WhatsApp Session Storage (Keep local & private)
+whatsapp_session/
+*.png
+*.jpg
+*.jpeg
