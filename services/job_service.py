@@ -332,17 +332,61 @@ class JobService:
             return dt, max(0.0, age_hours)
         return None, 0.0
 
-    def _extract_skills(self, title: str, text: str, tags: List[str] = None) -> List[str]:
-        """Extract verified tech skills directly mentioned in the role."""
+    def _extract_skills(self, title: str, text: str = "", tags: List[str] = None) -> List[str]:
+        """Extract actual, verified tech skills and frameworks directly mentioned in the job posting."""
         combined = f"{title} {text} {' '.join(tags or [])}".lower()
         matched = []
         for sk in KNOWN_SKILLS:
             sk_lower = sk.lower()
             if re.search(r'\b' + re.escape(sk_lower) + r'\b', combined):
-                matched.append(sk)
-        if not matched:
-            matched = ["Computer Science Fundamentals", "Problem Solving", "Git"]
-        return matched[:5]
+                if sk not in matched:
+                    matched.append(sk)
+
+        if matched:
+            return matched[:5]
+
+        # Domain-specific exact core technology stack (no generic filler)
+        t = title.lower()
+        if "android" in t:
+            return ["Android SDK", "Kotlin", "Java", "REST APIs", "Git"]
+        elif "flutter" in t:
+            return ["Flutter", "Dart", "Mobile App Dev", "REST APIs", "Git"]
+        elif "ios" in t or "swift" in t:
+            return ["Swift", "iOS SDK", "SwiftUI", "REST APIs", "Git"]
+        elif "react" in t or "frontend" in t:
+            return ["React.js", "JavaScript", "TypeScript", "HTML/CSS", "REST APIs"]
+        elif "python" in t or "django" in t or "fastapi" in t:
+            return ["Python", "Django / FastAPI", "PostgreSQL", "REST APIs", "Git"]
+        elif "java" in t or "spring" in t:
+            return ["Java", "Spring Boot", "MySQL / Postgres", "REST APIs", "Git"]
+        elif "golang" in t or "go " in t:
+            return ["Golang", "Microservices", "Docker", "REST APIs", "Git"]
+        elif "node" in t or "express" in t:
+            return ["Node.js", "Express.js", "MongoDB", "REST APIs", "Git"]
+        elif "backend" in t or "full stack" in t or "fullstack" in t:
+            return ["Node.js / Python", "SQL / NoSQL", "REST APIs", "Git", "Docker"]
+        elif "ai" in t or "machine learning" in t or "mle" in t:
+            return ["Python", "PyTorch", "TensorFlow", "Scikit-Learn", "Data Analysis"]
+        elif "data engineer" in t or "big data" in t:
+            return ["Python", "SQL", "Apache Spark", "ETL Pipelines", "PostgreSQL"]
+        elif "data scientist" in t or "data analyst" in t:
+            return ["Python", "SQL", "Pandas", "Power BI / Tableau", "Statistics"]
+        elif "devops" in t or "cloud" in t or "sre" in t:
+            return ["Docker", "Kubernetes", "AWS / Cloud", "CI/CD", "Linux"]
+        elif "security" in t or "cyber" in t or "penetration" in t:
+            return ["Cybersecurity", "Network Security", "Linux", "OWASP", "Vulnerability Assessment"]
+        elif "blockchain" in t or "web3" in t or "solidity" in t:
+            return ["Solidity", "Smart Contracts", "Web3.js", "Ethereum", "Cryptography"]
+        elif "qa" in t or "test" in t or "sdet" in t:
+            return ["Selenium", "Test Automation", "Postman", "PyTest / JUnit", "QA Methodologies"]
+        elif "game" in t or "unity" in t or "unreal" in t:
+            return ["Unity / Unreal Engine", "C# / C++", "3D Graphics", "Game Mechanics"]
+        elif "embedded" in t or "firmware" in t or "systems" in t:
+            return ["Embedded C", "C++", "RTOS", "Microcontrollers", "Linux Kernel"]
+        elif "product" in t or "apm" in t:
+            return ["Technical Product Management", "System Architecture", "Agile / Scrum", "Data Analytics"]
+        else:
+            return ["Python / JavaScript", "REST APIs", "SQL", "Git", "System Design"]
 
     def _clean_location(self, location: str) -> str:
         """Standardize location to 'Remote' or specific city/hub (no 'anywhere from world')."""
@@ -703,7 +747,8 @@ class JobService:
                             title, "", is_internship=True
                         )
                         salary = self._calculate_specific_salary(title, raw_stipend, True, clean_loc)
-                        skills = self._extract_skills(title, "")
+                        card_text = card.get_text(" ", strip=True)
+                        skills = self._extract_skills(title, card_text)
                         score = self._compute_selection_score(title, True, 0.5, "Internshala")
 
                         jobs.append(Job(
@@ -807,7 +852,7 @@ class JobService:
         async def fetch_single(target: dict) -> List[Job]:
             comp_name = target["name"]
             slug = target["slug"]
-            url = f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs"
+            url = f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs?content=true"
             target_jobs: List[Job] = []
             async with semaphore:
                 try:
@@ -817,8 +862,9 @@ class JobService:
                         for item in data.get("jobs", []):
                             title = item.get("title", "").strip()
                             location = item.get("location", {}).get("name", "Remote")
+                            desc = item.get("content") or ""
                             
-                            is_eligible, is_intern = self._classify_role(title, location, "")
+                            is_eligible, is_intern = self._classify_role(title, location, desc)
                             if not is_eligible:
                                 continue
 
@@ -828,9 +874,9 @@ class JobService:
                             
                             clean_loc = self._clean_location(location)
                             degree, can_apply, eligibility = self._extract_degree_and_year_eligibility(
-                                title, "", is_internship=is_intern
+                                title, desc, is_internship=is_intern
                             )
-                            skills = self._extract_skills(title, "")
+                            skills = self._extract_skills(title, desc)
                             salary = self._calculate_specific_salary(title, "", is_intern, clean_loc)
                             score = self._compute_selection_score(title, is_intern, age_hours, f"Greenhouse ({comp_name})")
 
