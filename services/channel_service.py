@@ -8,6 +8,7 @@ from typing import Tuple, Optional
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 
+from config import MAX_JOB_AGE_HOURS
 from database.db import db
 from services.job_service import job_service
 
@@ -16,8 +17,8 @@ logger = logging.getLogger(__name__)
 
 async def broadcast_jobs_to_channel(bot: Bot, limit: Optional[int] = None, force_all: bool = False) -> Tuple[int, str]:
     """
-    Broadcast latest unposted jobs directly to the configured Telegram Channel.
-    If limit is None, posts every single new job as soon as it appears.
+    Broadcast strictly latest/fresh unposted jobs directly to the configured Telegram Channel.
+    Ensures only newly dropped openings are published.
     Returns (posted_count, status_message).
     """
     channel_id = db.get_channel()
@@ -25,10 +26,16 @@ async def broadcast_jobs_to_channel(bot: Bot, limit: Optional[int] = None, force
         logger.info("No Telegram Channel configured for broadcasting.")
         return 0, "No channel configured. Set one using /setchannel @YourChannel"
 
-    logger.info(f"Checking for new job updates to post to channel '{channel_id}'...")
-    all_jobs = await job_service.get_all_jobs(force_refresh=True)
+    logger.info(f"Checking for latest fresh job updates to post to channel '{channel_id}'...")
+    # Fetch strictly latest jobs within MAX_JOB_AGE_HOURS (default 2.0 hours)
+    all_jobs = await job_service.get_all_jobs(max_age_hours=MAX_JOB_AGE_HOURS, force_refresh=True)
     if not all_jobs:
-        return 0, "No job postings available."
+        # Fallback to absolute newest recent jobs sorted by recency
+        raw_jobs = await job_service.get_all_jobs(force_refresh=False)
+        all_jobs = sorted(raw_jobs, key=lambda j: j.age_hours)[:20] if raw_jobs else []
+
+    if not all_jobs:
+        return 0, "No fresh job postings available."
 
     posted_count = 0
     for job in all_jobs:
