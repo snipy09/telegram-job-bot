@@ -1,14 +1,13 @@
 """
-Google Cloud Run Compatible 24/7 Runner with Healthcheck Endpoint.
-Runs Telegram Bot in background and listens on PORT (default 8080) for Cloud Run container lifecycle.
+Cloud Compatible 24/7 Channel Broadcaster with Healthcheck Endpoint.
+Runs continuous Telegram channel broadcaster in background and listens on PORT (default 8080).
 """
 import os
-import asyncio
 import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 
-from bot import main
+from main import main as run_broadcaster
 
 logger = logging.getLogger("CloudRunner")
 
@@ -18,7 +17,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
-        self.wfile.write(b"OK - 24/7 Telegram Job Broadcaster is Active")
+        self.wfile.write(b"OK - 24/7 FlashJob Channel Broadcaster is Active")
 
     def log_message(self, format, *args):
         pass  # Quiet health check logs
@@ -32,9 +31,9 @@ def run_healthcheck_server():
 
 
 if __name__ == "__main__":
-    # Start healthcheck server in background thread for Google Cloud Run
+    # Start healthcheck server in background thread
     health_thread = threading.Thread(target=run_healthcheck_server, daemon=True)
     health_thread.start()
 
-    # Start main bot polling loop
-    main()
+    # Start main channel broadcaster daemon
+    run_broadcaster()
