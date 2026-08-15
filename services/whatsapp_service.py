@@ -133,11 +133,24 @@ class WhatsAppService:
                     human_wait = random.uniform(4.0, 7.5)
                     await asyncio.sleep(human_wait)
 
+                    # Handle any popup modal or 'View channel' button if presented by WhatsApp Web
+                    for btn_text in ["View channel", "Open channel", "Follow"]:
+                        try:
+                            btn = page.locator(f'button:has-text("{btn_text}"), div[role="button"]:has-text("{btn_text}")').first
+                            if await btn.is_visible(timeout=2000):
+                                await btn.click()
+                                await asyncio.sleep(2.0)
+                                break
+                        except Exception:
+                            pass
+
                     # Selector for message composer in WhatsApp Channel
                     composer_selectors = [
                         'div[contenteditable="true"][data-tab="10"]',
                         'div[contenteditable="true"][data-tab="6"]',
+                        'div[contenteditable="true"][title="Type an update"]',
                         'div[contenteditable="true"][title="Type a message"]',
+                        'div[contenteditable="true"][aria-label="Type an update"]',
                         'div[contenteditable="true"][aria-label="Type a message"]',
                         'footer div[contenteditable="true"]',
                         'div[contenteditable="true"]'
