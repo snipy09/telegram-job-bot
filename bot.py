@@ -28,7 +28,8 @@ from handlers.commands import (
     filter_command,
     year_command,
     fresher_command,
-    internships_command
+    internships_command,
+    parttime_command
 )
 from handlers.callbacks import callback_router
 from handlers.inline import inline_query_handler
@@ -51,6 +52,7 @@ async def post_init(application: Application):
         BotCommand("year", "Filter for 2nd, 3rd, 4th years"),
         BotCommand("fresher", "Fresher roles (0 exp)"),
         BotCommand("internships", "Paid CS Internships"),
+        BotCommand("parttime", "Part-Time & Freelance Roles"),
         BotCommand("latest", "Latest job postings"),
         BotCommand("search", "Search by skill or role"),
         BotCommand("alerts", "Manage keyword job alerts"),
@@ -89,6 +91,7 @@ def main():
     application.add_handler(CommandHandler(["year", "batch"], year_command))
     application.add_handler(CommandHandler(["fresher", "freshers", "entry"], fresher_command))
     application.add_handler(CommandHandler(["internships", "internship", "intern"], internships_command))
+    application.add_handler(CommandHandler(["parttime", "part_time", "freelance"], parttime_command))
     application.add_handler(CommandHandler("search", search_command))
     application.add_handler(CommandHandler(["alerts", "alert"], alerts_command))
     application.add_handler(CommandHandler(["saved", "bookmarks"], saved_command))

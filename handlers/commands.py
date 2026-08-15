@@ -368,3 +368,33 @@ async def internships_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update.message.reply_text(text=text, reply_markup=keyboard, parse_mode=ParseMode.HTML)
     elif update.callback_query:
         await update.callback_query.edit_message_text(text=text, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+
+
+async def parttime_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /parttime: Flexible part-time and freelance developer roles."""
+    user_id = update.effective_user.id if update.effective_user else 0
+    jobs, total_count, total_pages, current_page = await job_service.search_jobs(part_time_only=True, page=1, per_page=1)
+
+    if not jobs:
+        msg = "No part-time roles found at this moment. Please check back shortly."
+        if update.message:
+            await update.message.reply_text(msg, reply_markup=get_filter_menu_keyboard())
+        return
+
+    job = jobs[0]
+    is_saved = db.is_job_saved(user_id, job.id)
+    text = job.to_telegram_html()
+    keyboard = get_job_card_keyboard(
+        job_id=job.id,
+        job_url=job.url,
+        is_saved=is_saved,
+        current_page=current_page,
+        total_pages=total_count,
+        query_param="parttime"
+    )
+
+    if update.message:
+        await update.message.reply_text(text=text, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+    elif update.callback_query:
+        await update.callback_query.edit_message_text(text=text, reply_markup=keyboard, parse_mode=ParseMode.HTML)
+

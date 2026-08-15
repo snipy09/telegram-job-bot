@@ -118,6 +118,7 @@ class Job:
         """True if role is for college students, freshers, or 0-1 year exp developers."""
         return (
             self.is_internship or
+            self.is_part_time or
             "fresh" in self.eligibility.lower() or
             "0-1" in self.eligibility.lower() or
             "graduate" in self.eligibility.lower() or
@@ -125,13 +126,19 @@ class Job:
             "b.tech" in self.eligibility.lower()
         )
 
+    @property
+    def is_part_time(self) -> bool:
+        """True if role is part-time, contractor, freelance, or flexible hours."""
+        combined = f"{self.title} {self.eligibility} {self.location} {self.salary}".lower()
+        return any(k in combined for k in ["part-time", "part time", "parttime", "freelance", "contractor", "20 hrs/week", "flexible hours"])
+
     def is_eligible_for_year(self, year: int) -> bool:
         """Check if role is specifically open to 1st, 2nd, 3rd, or 4th year students."""
         if year in (1, 2, 3):
-            # 1st, 2nd & 3rd year students are eligible for internships, student gigs, and trainee roles
-            return self.is_internship or "enrolled" in self.eligibility.lower() or "student" in self.eligibility.lower()
+            # 1st, 2nd & 3rd year students are eligible for internships, part-time gigs, and trainee roles
+            return self.is_internship or self.is_part_time or "enrolled" in self.eligibility.lower() or "student" in self.eligibility.lower()
         elif year == 4:
-            # 4th year final-semester students are eligible for both internships and graduate/entry-level openings
+            # 4th year final-semester students are eligible for all internships, part-time, and graduate/entry-level openings
             return True
         return True
 
@@ -174,9 +181,15 @@ class Job:
     def to_telegram_html(self, *args, **kwargs) -> str:
         """
         Format job card specifically tailored for Indian engineering students in Tier-2/3 colleges (Years 1-4).
-        Highlights skills-first hiring, batch eligibility, and 10/10 quality rating.
+        Highlights part-time, internship, or full-time status, skills-first hiring, and 10/10 quality rating.
         """
-        alert_type = "INTERNSHIP ALERT" if self.is_internship else "HIRING ALERT"
+        if self.is_part_time:
+            alert_type = "PART-TIME ALERT"
+        elif self.is_internship:
+            alert_type = "INTERNSHIP ALERT"
+        else:
+            alert_type = "HIRING ALERT"
+
         loc_clean = self.location if self.location else "Remote (India)"
         loc_upper = "REMOTE" if "remote" in loc_clean.lower() else loc_clean.upper()
         header = f"💼 <b>{alert_type}</b> ─── 🌐 <b>{loc_upper}</b>"
@@ -199,7 +212,10 @@ class Job:
         else:
             deg_line = "Any Degree / Branch (B.Tech/BE/BCA/MCA/B.Sc CS) — Open to All Colleges"
 
-        if self.is_internship:
+        if self.is_part_time:
+            batch_line = "2025 / 2026 / 2027 / 2028 / 2029 Batches"
+            year_status = "✅ 1st, 2nd, 3rd & 4th Year Students Eligible (Part-Time / Flexible WFH)"
+        elif self.is_internship:
             batch_line = "2025 / 2026 / 2027 / 2028 / 2029 Batches"
             year_status = "✅ 1st, 2nd, 3rd & 4th Year Students Can Apply (WFH / Flexible)"
         else:
@@ -1230,16 +1246,18 @@ class JobService:
         query: Optional[str] = None,
         internships_only: bool = False,
         fresher_only: bool = False,
+        part_time_only: bool = False,
         year: Optional[int] = None,
         page: int = 1,
         per_page: int = JOBS_PER_PAGE
     ) -> Tuple[List[Job], int, int, int]:
-        """Search student tech jobs sorted by selection probability and year/fresher filters."""
+        """Search student tech jobs sorted by selection probability and year/fresher/part-time filters."""
         jobs = await self.get_all_jobs()
         filtered = [
             j for j in jobs
             if (not internships_only or j.is_internship)
             and (not fresher_only or j.is_fresher_role)
+            and (not part_time_only or j.is_part_time)
             and (year is None or j.is_eligible_for_year(year))
             and j.matches_query(query)
         ]

@@ -159,10 +159,10 @@ async def render_job_page(query, context, query_param: str = "", page: int = 1):
     """Helper to render job card views with year/fresher filtering."""
     user_id = query.from_user.id
     
-    # Parse filter query params
     search_q = None
     internships_only = False
     fresher_only = False
+    part_time_only = False
     year = None
 
     if query_param.startswith("year:"):
@@ -171,6 +171,8 @@ async def render_job_page(query, context, query_param: str = "", page: int = 1):
         fresher_only = True
     elif query_param == "internships":
         internships_only = True
+    elif query_param == "parttime":
+        part_time_only = True
     elif query_param:
         search_q = query_param
 
@@ -178,6 +180,7 @@ async def render_job_page(query, context, query_param: str = "", page: int = 1):
         query=search_q,
         internships_only=internships_only,
         fresher_only=fresher_only,
+        part_time_only=part_time_only,
         year=year,
         page=page,
         per_page=1

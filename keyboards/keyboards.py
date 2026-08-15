@@ -44,7 +44,10 @@ def get_filter_menu_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton("Internships Only", callback_data="filter:internships"),
         ],
         [
+            InlineKeyboardButton("Part-Time Roles", callback_data="filter:parttime"),
             InlineKeyboardButton("All Openings", callback_data="menu:latest"),
+        ],
+        [
             InlineKeyboardButton("Main Menu", callback_data="menu:home")
         ]
     ]
