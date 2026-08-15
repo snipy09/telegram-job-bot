@@ -52,14 +52,12 @@ class TestJobUpdatesAndChannel(unittest.IsolatedAsyncioTestCase):
 
         # Verify template structure
         html_msg = first_job.to_telegram_html()
-        self.assertTrue("<b>role:</b>" in html_msg)
-        self.assertTrue("<b>company:</b>" in html_msg)
-        self.assertTrue("<b>posted:</b>" in html_msg)
-        self.assertTrue("<b>degree required:</b>" in html_msg)
-        self.assertTrue("<b>can 2nd/3rd years apply?:</b>" in html_msg)
-        self.assertTrue("<b>eligibility:</b>" in html_msg)
-        self.assertTrue("<b>skills required:</b>" in html_msg)
-        self.assertTrue("<b>salary" in html_msg)
+        self.assertTrue("ALERT" in html_msg)
+        self.assertTrue("🏢" in html_msg)
+        self.assertTrue("QUICK SUMMARY" in html_msg)
+        self.assertTrue("Eligibility:" in html_msg)
+        self.assertTrue("Core Requirements:" in html_msg)
+        self.assertTrue("CLICK HERE TO APPLY DIRECTLY" in html_msg)
 
 
 if __name__ == "__main__":

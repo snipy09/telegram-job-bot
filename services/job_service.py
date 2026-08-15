@@ -173,37 +173,55 @@ class Job:
 
     def to_telegram_html(self, *args, **kwargs) -> str:
         """
-        Format job using clear, breathable spacing and aesthetic structure.
-        Specifically answers degree requirements and 2nd/3rd year applicability.
-        No redundant raw link in message body (handled by interactive Apply Link button).
+        Format job using the exact aesthetic card template requested by user.
         """
-        header = "<b>INTERNSHIP UPDATE</b>" if self.is_internship else "<b>JOB UPDATE</b>"
+        alert_type = "INTERNSHIP ALERT" if self.is_internship else "HIRING ALERT"
+        loc_upper = "REMOTE" if "remote" in self.location.lower() else self.location.upper()
+        header = f"💼 <b>{alert_type}</b> ─── 🌐 <b>{loc_upper}</b>"
+
         clean_title = html.escape(self.title)
         clean_company = html.escape(self.company)
-        clean_location = html.escape(self.location) if self.location else "Remote"
-        clean_posted = html.escape(self.get_formatted_posted_time())
-        clean_degree = html.escape(self.degree_required)
-        clean_can_apply = html.escape(self.can_2nd_3rd_years_apply)
-        clean_eligibility = html.escape(self.eligibility)
+        clean_loc = html.escape(self.location) if self.location else "Remote"
         
-        skills_str = ", ".join(self.skills_required) if self.skills_required else "Python, Web Development, CS Fundamentals"
-        clean_skills = html.escape(skills_str)
-        salary_label = "salary / stipend:" if self.is_internship else "salary:"
+        # Posted time format (e.g. 'Fresh Drop' if recent)
+        if self.age_hours < 1.0:
+            clean_time = "Fresh Drop"
+        else:
+            clean_time = html.escape(self.get_formatted_posted_time())
+
         clean_salary = html.escape(self.salary)
 
+        # Format eligibility bullet points
+        if self.degree_required.lower().startswith("yes"):
+            deg_line = "B.Tech / B.E / BCA / MCA (CS / IT / Tech)"
+        else:
+            deg_line = "Open to All Degrees / Enrolled College Students"
+
+        if self.is_internship:
+            batch_line = "2026 / 2027 / 2028 Batches"
+            year_status = "✅ 2nd & 3rd year students can apply"
+        else:
+            batch_line = "2025 / 2026 / Past Graduates (0–1+ yrs exp)"
+            year_status = "⚠️ 2nd & 3rd year students are not eligible"
+
+        skills_str = " • ".join(self.skills_required) if self.skills_required else "Python • Web Development • REST APIs • Git"
+        clean_skills = html.escape(skills_str)
+        clean_url = html.escape(self.url)
+
         template = (
-            f"{header}\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-            f"<b>role:</b>  {clean_title}\n"
-            f"<b>company:</b>  {clean_company}\n"
-            f"<b>location:</b>  {clean_location}\n"
-            f"<b>posted:</b>  {clean_posted}\n\n"
-            f"<b>degree required:</b>  {clean_degree}\n"
-            f"<b>can 2nd/3rd years apply?:</b>  {clean_can_apply}\n\n"
-            f"<b>eligibility:</b>  {clean_eligibility}\n\n"
-            f"<b>skills required:</b>  {clean_skills}\n\n"
-            f"<b>{salary_label}</b>  {clean_salary}\n\n"
-            f"━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            f"{header}\n\n"
+            f"<b>{clean_title}</b>\n"
+            f"🏢 <b>{clean_company}</b>\n\n"
+            f"💰 {clean_salary}  |  📍 {clean_loc}  |  ⏱ {clean_time}\n\n"
+            f"──────── 📌 <b>QUICK SUMMARY</b> ────────\n\n"
+            f"🎓 <b>Eligibility:</b>\n"
+            f"└ {deg_line}\n"
+            f"└ {batch_line}\n"
+            f"└ {year_status}\n\n"
+            f"⚡ <b>Core Requirements:</b>\n"
+            f"└ {clean_skills}\n\n"
+            f"─────────────────────────────────\n\n"
+            f"🔗 <a href=\"{clean_url}\"><b>CLICK HERE TO APPLY DIRECTLY</b></a>"
         )
         return template
 
