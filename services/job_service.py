@@ -621,118 +621,207 @@ class JobService:
         return jobs
 
     async def _fetch_ashby_sources(self, client: httpx.AsyncClient) -> List[Job]:
-        """Scrape Ashby public API endpoints for top startups."""
-        jobs: List[Job] = []
-        for target in ASHBY_SOURCES:
+        """Scrape Ashby public API endpoints for top startups concurrently."""
+        semaphore = asyncio.Semaphore(25)
+
+        async def fetch_single(target: dict) -> List[Job]:
             comp_name = target["name"]
             slug = target["slug"]
             url = f"https://api.ashbyhq.com/posting-api/job-board/{slug}"
-            try:
-                resp = await client.get(url, timeout=6.0)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    for item in data.get("jobs", []):
-                        title = item.get("title", "").strip()
-                        location = item.get("location") or "Remote"
-                        desc = item.get("descriptionHtml") or item.get("descriptionPlain") or ""
-                        
-                        is_eligible, is_intern = self._classify_role(title, location, desc)
-                        if not is_eligible:
-                            continue
+            target_jobs: List[Job] = []
+            async with semaphore:
+                try:
+                    resp = await client.get(url, timeout=5.0)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        for item in data.get("jobs", []):
+                            title = item.get("title", "").strip()
+                            location = item.get("location") or "Remote"
+                            desc = item.get("descriptionHtml") or item.get("descriptionPlain") or ""
+                            
+                            is_eligible, is_intern = self._classify_role(title, location, desc)
+                            if not is_eligible:
+                                continue
 
-                        apply_url = item.get("jobUrl") or f"https://jobs.ashbyhq.com/{slug}/{item.get('id')}"
-                        pub_str = item.get("publishedAt") or item.get("updatedAt")
-                        dt, age_hours = self._parse_datetime(pub_str)
-                        
-                        clean_loc = self._clean_location(location)
-                        degree, can_apply, eligibility = self._extract_degree_and_year_eligibility(
-                            title, desc, is_internship=is_intern
-                        )
-                        skills = self._extract_skills(title, desc)
-                        
-                        raw_salary = ""
-                        if item.get("compensation") and item.get("compensation").get("compensationTierSummary"):
-                            raw_salary = item.get("compensation").get("compensationTierSummary")
-                        salary = self._calculate_specific_salary(title, raw_salary, is_intern, clean_loc)
-                        score = self._compute_selection_score(title, is_intern, age_hours, "Ashby")
+                            apply_url = item.get("jobUrl") or f"https://jobs.ashbyhq.com/{slug}/{item.get('id')}"
+                            pub_str = item.get("publishedAt") or item.get("updatedAt")
+                            dt, age_hours = self._parse_datetime(pub_str)
+                            
+                            clean_loc = self._clean_location(location)
+                            degree, can_apply, eligibility = self._extract_degree_and_year_eligibility(
+                                title, desc, is_internship=is_intern
+                            )
+                            skills = self._extract_skills(title, desc)
+                            
+                            raw_salary = ""
+                            if item.get("compensation") and item.get("compensation").get("compensationTierSummary"):
+                                raw_salary = item.get("compensation").get("compensationTierSummary")
+                            salary = self._calculate_specific_salary(title, raw_salary, is_intern, clean_loc)
+                            score = self._compute_selection_score(title, is_intern, age_hours, f"Ashby ({comp_name})")
 
-                        jobs.append(Job(
-                            id=generate_job_id(comp_name, title, apply_url),
-                            title=title,
-                            company=comp_name,
-                            location=clean_loc,
-                            is_remote=True,
-                            is_internship=is_intern,
-                            is_student_eligible=True,
-                            degree_required=degree,
-                            can_2nd_3rd_years_apply=can_apply,
-                            eligibility=eligibility,
-                            salary=salary,
-                            url=apply_url,
-                            published_at=pub_str or "",
-                            published_datetime=dt,
-                            age_hours=age_hours,
-                            selection_score=score,
-                            skills_required=skills,
-                            source=f"Ashby ({comp_name})"
-                        ))
-            except Exception as e:
-                logger.debug(f"Ashby fetch skipped for {comp_name}: {e}")
+                            target_jobs.append(Job(
+                                id=generate_job_id(comp_name, title, apply_url),
+                                title=title,
+                                company=comp_name,
+                                location=clean_loc,
+                                is_remote=True,
+                                is_internship=is_intern,
+                                is_student_eligible=True,
+                                degree_required=degree,
+                                can_2nd_3rd_years_apply=can_apply,
+                                eligibility=eligibility,
+                                salary=salary,
+                                url=apply_url,
+                                published_at=pub_str or "",
+                                published_datetime=dt,
+                                age_hours=age_hours,
+                                selection_score=score,
+                                skills_required=skills,
+                                source=f"Ashby ({comp_name})"
+                            ))
+                except Exception as e:
+                    logger.debug(f"Ashby fetch skipped for {comp_name}: {e}")
+            return target_jobs
+
+        results = await asyncio.gather(*(fetch_single(t) for t in ASHBY_SOURCES), return_exceptions=True)
+        jobs: List[Job] = []
+        for r in results:
+            if isinstance(r, list):
+                jobs.extend(r)
         return jobs
 
     async def _fetch_greenhouse_sources(self, client: httpx.AsyncClient) -> List[Job]:
-        """Scrape Greenhouse public API endpoints for top tech companies."""
-        jobs: List[Job] = []
-        for target in GREENHOUSE_SOURCES:
+        """Scrape Greenhouse public API endpoints for top tech companies concurrently."""
+        semaphore = asyncio.Semaphore(25)
+
+        async def fetch_single(target: dict) -> List[Job]:
             comp_name = target["name"]
             slug = target["slug"]
             url = f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs"
-            try:
-                resp = await client.get(url, timeout=6.0)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    for item in data.get("jobs", []):
-                        title = item.get("title", "").strip()
-                        location = item.get("location", {}).get("name", "Remote")
-                        
-                        is_eligible, is_intern = self._classify_role(title, location, "")
-                        if not is_eligible:
-                            continue
+            target_jobs: List[Job] = []
+            async with semaphore:
+                try:
+                    resp = await client.get(url, timeout=5.0)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        for item in data.get("jobs", []):
+                            title = item.get("title", "").strip()
+                            location = item.get("location", {}).get("name", "Remote")
+                            
+                            is_eligible, is_intern = self._classify_role(title, location, "")
+                            if not is_eligible:
+                                continue
 
-                        apply_url = item.get("absolute_url", "")
-                        pub_str = item.get("updated_at")
-                        dt, age_hours = self._parse_datetime(pub_str)
-                        
-                        clean_loc = self._clean_location(location)
-                        degree, can_apply, eligibility = self._extract_degree_and_year_eligibility(
-                            title, "", is_internship=is_intern
-                        )
-                        skills = self._extract_skills(title, "")
-                        salary = self._calculate_specific_salary(title, "", is_intern, clean_loc)
-                        score = self._compute_selection_score(title, is_intern, age_hours, "Greenhouse")
+                            apply_url = item.get("absolute_url", "")
+                            pub_str = item.get("updated_at")
+                            dt, age_hours = self._parse_datetime(pub_str)
+                            
+                            clean_loc = self._clean_location(location)
+                            degree, can_apply, eligibility = self._extract_degree_and_year_eligibility(
+                                title, "", is_internship=is_intern
+                            )
+                            skills = self._extract_skills(title, "")
+                            salary = self._calculate_specific_salary(title, "", is_intern, clean_loc)
+                            score = self._compute_selection_score(title, is_intern, age_hours, f"Greenhouse ({comp_name})")
 
-                        jobs.append(Job(
-                            id=generate_job_id(comp_name, title, apply_url),
-                            title=title,
-                            company=comp_name,
-                            location=clean_loc,
-                            is_remote=True,
-                            is_internship=is_intern,
-                            is_student_eligible=True,
-                            degree_required=degree,
-                            can_2nd_3rd_years_apply=can_apply,
-                            eligibility=eligibility,
-                            salary=salary,
-                            url=apply_url,
-                            published_at=pub_str or "",
-                            published_datetime=dt,
-                            age_hours=age_hours,
-                            selection_score=score,
-                            skills_required=skills,
-                            source=f"Greenhouse ({comp_name})"
-                        ))
-            except Exception as e:
-                logger.debug(f"Greenhouse fetch skipped for {comp_name}: {e}")
+                            target_jobs.append(Job(
+                                id=generate_job_id(comp_name, title, apply_url),
+                                title=title,
+                                company=comp_name,
+                                location=clean_loc,
+                                is_remote=True,
+                                is_internship=is_intern,
+                                is_student_eligible=True,
+                                degree_required=degree,
+                                can_2nd_3rd_years_apply=can_apply,
+                                eligibility=eligibility,
+                                salary=salary,
+                                url=apply_url,
+                                published_at=pub_str or "",
+                                published_datetime=dt,
+                                age_hours=age_hours,
+                                selection_score=score,
+                                skills_required=skills,
+                                source=f"Greenhouse ({comp_name})"
+                            ))
+                except Exception as e:
+                    logger.debug(f"Greenhouse fetch skipped for {comp_name}: {e}")
+            return target_jobs
+
+        results = await asyncio.gather(*(fetch_single(t) for t in GREENHOUSE_SOURCES), return_exceptions=True)
+        jobs: List[Job] = []
+        for r in results:
+            if isinstance(r, list):
+                jobs.extend(r)
+        return jobs
+
+    async def _fetch_lever_sources(self, client: httpx.AsyncClient) -> List[Job]:
+        """Scrape Lever public API endpoints for global tech leaders concurrently."""
+        semaphore = asyncio.Semaphore(25)
+
+        async def fetch_single(target: dict) -> List[Job]:
+            comp_name = target["name"]
+            slug = target["slug"]
+            url = f"https://api.lever.co/v0/postings/{slug}?mode=json"
+            target_jobs: List[Job] = []
+            async with semaphore:
+                try:
+                    resp = await client.get(url, timeout=5.0)
+                    if resp.status_code == 200:
+                        postings = resp.json()
+                        if isinstance(postings, list):
+                            for item in postings:
+                                title = item.get("text", "").strip()
+                                categories = item.get("categories", {})
+                                location = categories.get("location") or "Remote"
+                                desc = item.get("descriptionPlain") or ""
+
+                                is_eligible, is_intern = self._classify_role(title, location, desc)
+                                if not is_eligible:
+                                    continue
+
+                                apply_url = item.get("hostedUrl") or item.get("applyUrl") or f"https://jobs.lever.co/{slug}/{item.get('id')}"
+                                pub_timestamp = item.get("createdAt")
+                                dt = datetime.fromtimestamp(pub_timestamp / 1000.0, tz=timezone.utc) if pub_timestamp else datetime.now(timezone.utc)
+                                age_hours = max(0.0, (datetime.now(timezone.utc) - dt).total_seconds() / 3600.0)
+
+                                clean_loc = self._clean_location(location)
+                                degree, can_apply, eligibility = self._extract_degree_and_year_eligibility(
+                                    title, desc, is_internship=is_intern
+                                )
+                                skills = self._extract_skills(title, desc)
+                                salary = self._calculate_specific_salary(title, "", is_intern, clean_loc)
+                                score = self._compute_selection_score(title, is_intern, age_hours, f"Lever ({comp_name})")
+
+                                target_jobs.append(Job(
+                                    id=generate_job_id(comp_name, title, apply_url),
+                                    title=title,
+                                    company=comp_name,
+                                    location=clean_loc,
+                                    is_remote=True,
+                                    is_internship=is_intern,
+                                    is_student_eligible=True,
+                                    degree_required=degree,
+                                    can_2nd_3rd_years_apply=can_apply,
+                                    eligibility=eligibility,
+                                    salary=salary,
+                                    url=apply_url,
+                                    published_at=dt.strftime("%Y-%m-%d %H:%M:%S UTC"),
+                                    published_datetime=dt,
+                                    age_hours=age_hours,
+                                    selection_score=score,
+                                    skills_required=skills,
+                                    source=f"Lever ({comp_name})"
+                                ))
+                except Exception as e:
+                    logger.debug(f"Lever fetch skipped for {comp_name}: {e}")
+            return target_jobs
+
+        results = await asyncio.gather(*(fetch_single(t) for t in LEVER_SOURCES), return_exceptions=True)
+        jobs: List[Job] = []
+        for r in results:
+            if isinstance(r, list):
+                jobs.extend(r)
         return jobs
 
     async def _fetch_weworkremotely(self, client: httpx.AsyncClient) -> List[Job]:
@@ -1052,13 +1141,14 @@ class JobService:
                 if not force_refresh and self._cached_jobs and (current_time - self._last_fetched_time < JOBS_CACHE_TTL_SECONDS):
                     jobs = self._cached_jobs
                 else:
-                    logger.info("Scanning Internshala, Ashby, Greenhouse, WWR, Remotive, Jobicy, RemoteOK...")
+                    logger.info("Scanning 100+ Top Sources (Ashby, Greenhouse, Lever, Internshala, WWR, Remotive, Jobicy, RemoteOK)...")
                     headers = {"User-Agent": HTTP_USER_AGENT}
                     async with httpx.AsyncClient(headers=headers, follow_redirects=True) as client:
                         results = await asyncio.gather(
                             self._fetch_internshala(client),
                             self._fetch_ashby_sources(client),
                             self._fetch_greenhouse_sources(client),
+                            self._fetch_lever_sources(client),
                             self._fetch_weworkremotely(client),
                             self._fetch_remotive(client),
                             self._fetch_remoteok(client),
