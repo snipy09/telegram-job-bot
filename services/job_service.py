@@ -674,7 +674,7 @@ class JobService:
 
     async def _fetch_ashby_sources(self, client: httpx.AsyncClient) -> List[Job]:
         """Scrape Ashby public API endpoints for top startups concurrently."""
-        semaphore = asyncio.Semaphore(25)
+        semaphore = asyncio.Semaphore(40)
 
         async def fetch_single(target: dict) -> List[Job]:
             comp_name = target["name"]
@@ -744,7 +744,7 @@ class JobService:
 
     async def _fetch_greenhouse_sources(self, client: httpx.AsyncClient) -> List[Job]:
         """Scrape Greenhouse public API endpoints for top tech companies concurrently."""
-        semaphore = asyncio.Semaphore(25)
+        semaphore = asyncio.Semaphore(40)
 
         async def fetch_single(target: dict) -> List[Job]:
             comp_name = target["name"]
@@ -809,7 +809,7 @@ class JobService:
 
     async def _fetch_lever_sources(self, client: httpx.AsyncClient) -> List[Job]:
         """Scrape Lever public API endpoints for global tech leaders concurrently."""
-        semaphore = asyncio.Semaphore(25)
+        semaphore = asyncio.Semaphore(40)
 
         async def fetch_single(target: dict) -> List[Job]:
             comp_name = target["name"]
@@ -1193,9 +1193,10 @@ class JobService:
                 if not force_refresh and self._cached_jobs and (current_time - self._last_fetched_time < JOBS_CACHE_TTL_SECONDS):
                     jobs = self._cached_jobs
                 else:
-                    logger.info("Scanning 100+ Top Sources (Ashby, Greenhouse, Lever, Internshala, WWR, Remotive, Jobicy, RemoteOK)...")
+                    logger.info("Scanning 300+ Top Sources (Ashby, Greenhouse, Lever, Internshala, WWR, Remotive, Jobicy, RemoteOK)...")
                     headers = {"User-Agent": HTTP_USER_AGENT}
-                    async with httpx.AsyncClient(headers=headers, follow_redirects=True) as client:
+                    limits = httpx.Limits(max_connections=150, max_keepalive_connections=80)
+                    async with httpx.AsyncClient(headers=headers, follow_redirects=True, limits=limits) as client:
                         results = await asyncio.gather(
                             self._fetch_internshala(client),
                             self._fetch_ashby_sources(client),
