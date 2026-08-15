@@ -18,6 +18,10 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 # Telegram Channel for Automated Broadcasts (e.g. @YourChannel or -100xxxxxxxxxx)
 CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID", "").strip()
 
+# WhatsApp Channel Automation (100% Free)
+WHATSAPP_CHANNEL_URL = os.getenv("WHATSAPP_CHANNEL_URL", "https://whatsapp.com/channel/0029Vb88acW7j6g7C5G2b83c").strip()
+WHATSAPP_SESSION_PATH = os.getenv("WHATSAPP_SESSION_PATH", str(BASE_DIR / "whatsapp_session"))
+
 # Database
 DB_PATH = os.getenv("DB_PATH", str(BASE_DIR / "jobs_bot.db"))
 

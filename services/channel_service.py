@@ -11,6 +11,7 @@ from telegram.constants import ParseMode
 from config import MAX_JOB_AGE_HOURS
 from database.db import db
 from services.job_service import job_service
+from services.whatsapp_service import whatsapp_service
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,13 @@ async def broadcast_jobs_to_channel(bot: Bot, limit: Optional[int] = None, force
 
             db.mark_job_posted_to_channel(job.id)
             posted_count += 1
-            logger.info(f"Successfully posted 10/10 job '{job.title}' to channel {channel_id}")
+            logger.info(f"Successfully posted 10/10 job '{job.title}' to Telegram channel {channel_id}")
+
+            # Also broadcast to WhatsApp Channel (100% Free)
+            try:
+                await whatsapp_service.broadcast_job(job)
+            except Exception as w_err:
+                logger.debug(f"WhatsApp broadcast notice: {w_err}")
 
             # 20-second gap between each job posting
             await asyncio.sleep(20.0)

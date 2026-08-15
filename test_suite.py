@@ -56,8 +56,13 @@ class TestJobUpdatesAndChannel(unittest.IsolatedAsyncioTestCase):
         self.assertTrue("🏢" in html_msg)
         self.assertTrue("Quick Overview:" in html_msg)
         self.assertTrue("Eligibility:" in html_msg)
-        self.assertTrue("Core Skills:" in html_msg)
-        self.assertTrue("Click Here to Apply Directly" in html_msg)
+        # Verify WhatsApp template structure
+        wa_msg = first_job.to_whatsapp_text()
+        self.assertTrue("ALERT" in wa_msg)
+        self.assertTrue("🏢" in wa_msg)
+        self.assertTrue("Quick Overview:" in wa_msg)
+        self.assertTrue("Core Skills:" in wa_msg)
+        self.assertTrue("Join Landit on WhatsApp" in wa_msg)
 
 
 if __name__ == "__main__":

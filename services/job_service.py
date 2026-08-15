@@ -278,7 +278,52 @@ class Job:
             f"• 🎓 <b>Eligibility:</b> {deg_line}\n"
             f"• 🎯 <b>Eligible Batches:</b> {batch_line}\n"
             f"• ⚡ <b>Core Skills:</b> {clean_skills}\n\n"
-            f"🔗 <a href=\"{clean_url}\"><b>Click Here to Apply Directly</b></a>"
+            f"🔗 <a href=\"{clean_url}\"><b>Click Here to Apply Directly</b></a>\n\n"
+            f"📢 <b>Landit on WhatsApp:</b> <a href=\"https://whatsapp.com/channel/0029Vb88acW7j6g7C5G2b83c\"><b>Join Channel</b></a>"
+        )
+        return template
+
+    def to_whatsapp_text(self, *args, **kwargs) -> str:
+        """
+        Format sleek, aesthetic job card specifically for WhatsApp Channels (Markdown).
+        """
+        if self.is_part_time:
+            alert_type = "PART-TIME ALERT"
+        elif self.is_internship:
+            alert_type = "INTERNSHIP ALERT"
+        else:
+            alert_type = "HIRING ALERT"
+
+        loc_clean = self.location if self.location else "Remote (India)"
+        loc_upper = "REMOTE" if "remote" in loc_clean.lower() else loc_clean.upper()
+        header = f"*💼 {alert_type} • 🌐 {loc_upper}*"
+
+        # Eligibility line
+        if self.degree_required.lower().startswith("yes"):
+            deg_line = "B.Tech / BE / BCA / MCA (Open to Tier 2/3)"
+        else:
+            deg_line = "Any Degree / Branch (Open to All Colleges)"
+
+        if self.is_part_time:
+            batch_line = "1st, 2nd, 3rd & 4th Year (Batches 2025–2029)"
+        elif self.is_internship:
+            batch_line = "1st, 2nd, 3rd & 4th Year (Batches 2025–2029)"
+        else:
+            batch_line = "2025 / 2026 Batches & Graduates (0–1+ yrs)"
+
+        skills_str = " • ".join(self.skills_required) if self.skills_required else "Python • Web Development • REST APIs • Git"
+
+        template = (
+            f"{header}\n\n"
+            f"*{self.title}*\n"
+            f"🏢 *{self.company}*\n\n"
+            f"💰 {self.salary}  •  📍 {loc_clean}  •  ⭐ 10/10\n\n"
+            f"📌 *Quick Overview:*\n"
+            f"• 🎓 *Eligibility:* {deg_line}\n"
+            f"• 🎯 *Eligible Batches:* {batch_line}\n"
+            f"• ⚡ *Core Skills:* {skills_str}\n\n"
+            f"🔗 *Apply Link:* {self.url}\n\n"
+            f"📢 *Join Landit on WhatsApp:* https://whatsapp.com/channel/0029Vb88acW7j6g7C5G2b83c"
         )
         return template
 
