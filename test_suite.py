@@ -55,8 +55,8 @@ class TestJobUpdatesAndChannel(unittest.IsolatedAsyncioTestCase):
         self.assertTrue("ALERT" in html_msg)
         self.assertTrue("🏢" in html_msg)
         self.assertTrue("QUICK SUMMARY" in html_msg)
-        self.assertTrue("Eligibility:" in html_msg)
-        self.assertTrue("Core Requirements:" in html_msg)
+        self.assertTrue("Eligibility & College:" in html_msg)
+        self.assertTrue("Core Skills" in html_msg)
         self.assertTrue("CLICK HERE TO APPLY DIRECTLY" in html_msg)
 
 
