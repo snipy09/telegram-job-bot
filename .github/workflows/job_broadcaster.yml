@@ -2,8 +2,8 @@ name: 24x7 Job & Internship Broadcaster
 
 on:
   schedule:
-    # Auto-runs every 15 minutes 24x7 (Unlimited Free Execution on Public Repo)
-    - cron: '*/15 * * * *'
+    # Auto-runs every 10 minutes 24x7 (Unlimited Free Execution on Public Repo)
+    - cron: '*/10 * * * *'
   workflow_dispatch: # Allows manual trigger anytime from GitHub UI
 
 jobs:
