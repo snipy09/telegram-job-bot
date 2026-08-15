@@ -431,6 +431,39 @@ class JobService:
                 return False
         return True
 
+    def _apply_internship_to_job_ratio_filter(
+        self,
+        jobs: List[Job],
+        internship_ratio: int = 1,
+        job_ratio: int = 2
+    ) -> List[Job]:
+        """
+        Interleaves feed to maintain exactly 1 Internship : 2 Full-Time/Fresher Jobs ratio.
+        Sequence: [Internship, Job, Job, Internship, Job, Job, ...]
+        """
+        internships = [j for j in jobs if j.is_internship]
+        full_time_jobs = [j for j in jobs if not j.is_internship]
+
+        interleaved: List[Job] = []
+        i_idx = 0
+        j_idx = 0
+
+        while i_idx < len(internships) or j_idx < len(full_time_jobs):
+            # Take 1 Internship
+            for _ in range(internship_ratio):
+                if i_idx < len(internships):
+                    interleaved.append(internships[i_idx])
+                    i_idx += 1
+            # Take 2 Full-Time / Fresher Jobs
+            for _ in range(job_ratio):
+                if j_idx < len(full_time_jobs):
+                    interleaved.append(full_time_jobs[j_idx])
+                    j_idx += 1
+            if i_idx >= len(internships) and j_idx >= len(full_time_jobs):
+                break
+
+        return interleaved
+
     def _apply_degree_ratio_filter(
         self,
         jobs: List[Job],
@@ -1173,13 +1206,16 @@ class JobService:
                     # Rank by Selection Probability Score (highest odds first)
                     all_jobs.sort(key=lambda j: (j.selection_score, -j.age_hours), reverse=True)
 
-                    # Apply 9:1 Degree Ratio Filter (9 out of 10 jobs do NOT require a degree)
+                    # 1. Apply Degree Ratio Filter
                     all_jobs = self._apply_degree_ratio_filter(all_jobs, no_degree_ratio=9, degree_ratio=1)
+
+                    # 2. Apply Master 1:2 Ratio Filter (1 Internship : 2 Full-Time / Fresher Jobs)
+                    all_jobs = self._apply_internship_to_job_ratio_filter(all_jobs, internship_ratio=1, job_ratio=2)
 
                     if all_jobs:
                         self._cached_jobs = all_jobs
                         self._last_fetched_time = time.time()
-                        logger.info(f"Ingested {len(all_jobs)} verified CS opportunities (9:1 no-degree ratio applied).")
+                        logger.info(f"Ingested {len(all_jobs)} verified CS opportunities (1:2 Internship:Job & 9:1 No-Degree ratios applied).")
 
                     jobs = self._cached_jobs
 
