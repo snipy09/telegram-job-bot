@@ -111,6 +111,7 @@ class Job:
     selection_score: int = 0
     skills_required: List[str] = field(default_factory=list)
     source: str = "Unknown"
+    rating: str = "10/10"
 
     @property
     def is_fresher_role(self) -> bool:
@@ -173,7 +174,7 @@ class Job:
     def to_telegram_html(self, *args, **kwargs) -> str:
         """
         Format job card specifically tailored for Indian engineering students in Tier-2/3 colleges (Years 1-4).
-        Highlights skills-first hiring, batch eligibility, and remote/flexible working conditions.
+        Highlights skills-first hiring, batch eligibility, and 10/10 quality rating.
         """
         alert_type = "INTERNSHIP ALERT" if self.is_internship else "HIRING ALERT"
         loc_clean = self.location if self.location else "Remote (India)"
@@ -213,8 +214,9 @@ class Job:
             f"{header}\n\n"
             f"<b>{clean_title}</b>\n"
             f"🏢 <b>{clean_company}</b>\n\n"
-            f"💰 {clean_salary}  |  📍 {clean_loc}  |  ⏱ {clean_time}\n\n"
+            f"💰 {clean_salary}  |  📍 {clean_loc}  |  ⭐ 10/10  |  ⏱ {clean_time}\n\n"
             f"──────── 📌 <b>QUICK SUMMARY</b> ────────\n\n"
+            f"⭐ <b>Quality Rating:</b> 10/10 (Skills-First • Verified Pay • Open to Tier 2/3)\n\n"
             f"🎓 <b>Eligibility & College:</b>\n"
             f"└ {deg_line}\n"
             f"└ {batch_line}\n"

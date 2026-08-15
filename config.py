@@ -30,9 +30,5 @@ JOBS_PER_PAGE = int(os.getenv("JOBS_PER_PAGE", "5"))
 # Max job age filter (in hours) - e.g. only post jobs posted in the last 2 hours
 MAX_JOB_AGE_HOURS = float(os.getenv("MAX_JOB_AGE_HOURS", "2.0"))
 
-# Monetization & Sponsored Ads Settings
-ENABLE_SPONSORED_ADS = os.getenv("ENABLE_SPONSORED_ADS", "true").lower() in ("true", "1", "yes")
-AD_INJECTION_INTERVAL = int(os.getenv("AD_INJECTION_INTERVAL", "6"))
-
 # Default User-Agent for Job API requests
 HTTP_USER_AGENT = "Mozilla/5.0 (compatible; TelegramJobBot/1.0; +https://t.me/)"
