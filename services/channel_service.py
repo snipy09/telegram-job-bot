@@ -43,6 +43,12 @@ async def broadcast_jobs_to_channel(bot: Bot, limit: Optional[int] = None, force
     if not top_rated_jobs:
         top_rated_jobs = all_jobs  # Fallback to ensure channel remains active
 
+    # Broadcast Curated Top 5 Digest to WhatsApp Channel (Max 20/day with random delays)
+    try:
+        asyncio.create_task(whatsapp_service.broadcast_curated_digest(top_rated_jobs))
+    except Exception as w_err:
+        logger.debug(f"WhatsApp curated broadcast notice: {w_err}")
+
     posted_count = 0
     for job in top_rated_jobs:
         if limit is not None and posted_count >= limit:
@@ -70,13 +76,7 @@ async def broadcast_jobs_to_channel(bot: Bot, limit: Optional[int] = None, force
             posted_count += 1
             logger.info(f"Successfully posted 10/10 job '{job.title}' to Telegram channel {channel_id}")
 
-            # Also broadcast to WhatsApp Channel (100% Free)
-            try:
-                await whatsapp_service.broadcast_job(job)
-            except Exception as w_err:
-                logger.debug(f"WhatsApp broadcast notice: {w_err}")
-
-            # 20-second gap between each job posting
+            # 20-second gap between each Telegram job posting
             await asyncio.sleep(20.0)
 
         except Exception as e:

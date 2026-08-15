@@ -64,6 +64,20 @@ class TestJobUpdatesAndChannel(unittest.IsolatedAsyncioTestCase):
         self.assertTrue("Core Skills:" in wa_msg)
         self.assertTrue("Join Landit on WhatsApp" in wa_msg)
 
+        # Verify WhatsApp Top 5 Digest format
+        from services.job_service import format_whatsapp_top5_digest
+        digest = format_whatsapp_top5_digest(jobs[:5])
+        self.assertTrue("TOP 5 CURATED TECH OPPORTUNITIES" in digest)
+        self.assertTrue("1️⃣" in digest)
+
+    def test_whatsapp_daily_limits(self):
+        """Test WhatsApp 20 posts/day hard cap enforcement."""
+        self.assertTrue(self.db.can_post_to_whatsapp_today(max_daily=20))
+        for i in range(20):
+            self.db.mark_job_posted_to_whatsapp(f"job_{i}")
+        self.assertFalse(self.db.can_post_to_whatsapp_today(max_daily=20))
+        self.assertEqual(self.db.get_whatsapp_today_posts_count(), 20)
+
 
 if __name__ == "__main__":
     unittest.main()

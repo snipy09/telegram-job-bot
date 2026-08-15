@@ -328,6 +328,46 @@ class Job:
         return template
 
 
+def format_whatsapp_top5_digest(jobs: List[Job]) -> str:
+    """
+    Format a curated digest message of top 5 best 10/10 tech opportunities for WhatsApp Channel.
+    Combines verified compensation, core skills, eligibility, and direct apply links in a clean card.
+    """
+    selected = jobs[:5]
+    if not selected:
+        return ""
+
+    emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
+    lines = [
+        "🌟 *TOP 5 CURATED TECH OPPORTUNITIES (10/10)* 🌟",
+        "_Verified Pay • Tier-2/3 & College Friendly • Fresh Drops_\n"
+    ]
+
+    for idx, job in enumerate(selected):
+        num = emojis[idx] if idx < len(emojis) else f"{idx+1}️⃣"
+        tag = "INTERNSHIP" if job.is_internship else ("PART-TIME" if job.is_part_time else "FULL-TIME")
+        skills = " • ".join(job.skills_required[:4]) if job.skills_required else "Python • Web Development • Git"
+        loc = job.location if job.location else "Remote (India)"
+
+        if job.degree_required.lower().startswith("yes"):
+            elig = "B.Tech / BE / BCA / MCA (Tier-2/3)"
+        else:
+            elig = "Any Degree / Branch (Open to All)"
+
+        lines.append(
+            f"{num} *{job.title}* [{tag}]\n"
+            f"🏢 *{job.company}*\n"
+            f"💰 {job.salary}  •  📍 {loc}\n"
+            f"⚡ *Skills:* {skills}\n"
+            f"🎓 *Eligibility:* {elig}\n"
+            f"🔗 *Apply Directly:* {job.url}\n"
+        )
+
+    lines.append("────────────────────────")
+    lines.append("📢 *Join Landit WhatsApp Channel:* https://whatsapp.com/channel/0029Vb88acW7j6g7C5G2b83c")
+    return "\n".join(lines)
+
+
 class JobService:
     def __init__(self):
         self._cached_jobs: List[Job] = []

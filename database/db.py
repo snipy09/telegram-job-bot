@@ -64,6 +64,15 @@ class Database:
                 )
             """)
 
+            # WhatsApp Channel posted tracking (Daily cap & deduplication)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS whatsapp_posted_jobs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    job_id TEXT,
+                    posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
             # Job alert subscriptions
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
@@ -267,6 +276,42 @@ class Database:
             cursor = conn.cursor()
             cursor.execute("SELECT 1 FROM notified_jobs WHERE user_id = ? AND job_id = ?", (user_id, job_id))
             return cursor.fetchone() is not None
+
+    # WhatsApp Channel Broadcast Tracking & Daily Cap Enforcement
+    def mark_job_posted_to_whatsapp(self, job_id: str):
+        """Record that a job was posted to the WhatsApp Channel."""
+        try:
+            with self._connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO whatsapp_posted_jobs (job_id)
+                    VALUES (?)
+                """, (job_id,))
+        except Exception as e:
+            logger.error(f"Error recording WhatsApp post: {e}")
+
+    def is_job_posted_to_whatsapp(self, job_id: str) -> bool:
+        """Check if a job was already broadcasted to WhatsApp."""
+        with self._connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1 FROM whatsapp_posted_jobs WHERE job_id = ?", (job_id,))
+            return cursor.fetchone() is not None
+
+    def get_whatsapp_today_posts_count(self) -> int:
+        """Get total number of posts made to WhatsApp today (UTC/Local day)."""
+        with self._connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT COUNT(*) as count FROM whatsapp_posted_jobs
+                WHERE date(posted_at) = date('now')
+            """)
+            row = cursor.fetchone()
+            return row["count"] if row else 0
+
+    def can_post_to_whatsapp_today(self, max_daily: int = 20) -> bool:
+        """Verify that WhatsApp daily posting limit (max 20) has not been exceeded."""
+        today_count = self.get_whatsapp_today_posts_count()
+        return today_count < max_daily
 
 
 # Global singleton instance
