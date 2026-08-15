@@ -1,9 +1,10 @@
 services:
-  - type: worker
+  - type: web
     name: telegram-job-broadcaster
     env: python
+    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python bot.py
+    startCommand: python cloud_runner.py
     autoDeploy: true
     envVars:
       - key: TELEGRAM_BOT_TOKEN

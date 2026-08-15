@@ -1,1 +1,1 @@
-worker: python bot.py
+web: python cloud_runner.py
