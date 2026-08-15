@@ -274,11 +274,11 @@ async def filter_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def year_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /year <2|3|4>."""
+    """Handle /year <1|2|3|4>."""
     year = None
     if context.args and context.args[0].isdigit():
         val = int(context.args[0])
-        if val in (2, 3, 4):
+        if val in (1, 2, 3, 4):
             year = val
 
     if year is None:

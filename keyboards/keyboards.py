@@ -32,18 +32,19 @@ def get_filter_menu_keyboard() -> InlineKeyboardMarkup:
     """Keyboard for filtering by student year and role type."""
     keyboard = [
         [
+            InlineKeyboardButton("1st Year Students", callback_data="filter:year:1"),
             InlineKeyboardButton("2nd Year Students", callback_data="filter:year:2"),
+        ],
+        [
             InlineKeyboardButton("3rd Year Students", callback_data="filter:year:3"),
-        ],
-        [
             InlineKeyboardButton("4th Year / Final Year", callback_data="filter:year:4"),
+        ],
+        [
             InlineKeyboardButton("Fresher Roles (0 Exp)", callback_data="filter:fresher"),
-        ],
-        [
             InlineKeyboardButton("Internships Only", callback_data="filter:internships"),
-            InlineKeyboardButton("All Openings", callback_data="menu:latest"),
         ],
         [
+            InlineKeyboardButton("All Openings", callback_data="menu:latest"),
             InlineKeyboardButton("Main Menu", callback_data="menu:home")
         ]
     ]

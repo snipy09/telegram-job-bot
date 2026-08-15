@@ -125,13 +125,12 @@ class Job:
         )
 
     def is_eligible_for_year(self, year: int) -> bool:
-        """Check if role is specifically open to 2nd, 3rd, or 4th year students."""
-        if year == 2:
-            return self.is_internship and ("2nd" in self.can_2nd_3rd_years_apply.lower() or "yes" in self.can_2nd_3rd_years_apply.lower())
-        elif year == 3:
-            return self.is_internship and ("3rd" in self.can_2nd_3rd_years_apply.lower() or "yes" in self.can_2nd_3rd_years_apply.lower())
+        """Check if role is specifically open to 1st, 2nd, 3rd, or 4th year students."""
+        if year in (1, 2, 3):
+            # 1st, 2nd & 3rd year students are eligible for internships, student gigs, and trainee roles
+            return self.is_internship or "enrolled" in self.eligibility.lower() or "student" in self.eligibility.lower()
         elif year == 4:
-            # 4th years are eligible for final-year internships, campus hiring, and fresher/entry-level openings
+            # 4th year final-semester students are eligible for both internships and graduate/entry-level openings
             return True
         return True
 
@@ -173,7 +172,7 @@ class Job:
 
     def to_telegram_html(self, *args, **kwargs) -> str:
         """
-        Format job card specifically tailored for Indian engineering students in Tier-2/3 colleges (Years 2-4).
+        Format job card specifically tailored for Indian engineering students in Tier-2/3 colleges (Years 1-4).
         Highlights skills-first hiring, batch eligibility, and remote/flexible working conditions.
         """
         alert_type = "INTERNSHIP ALERT" if self.is_internship else "HIRING ALERT"
@@ -193,18 +192,18 @@ class Job:
 
         clean_salary = html.escape(self.salary)
 
-        # Format eligibility bullet points tailored for Indian college students
+        # Format eligibility bullet points tailored for 1st-4th Year Indian college students
         if self.degree_required.lower().startswith("yes"):
             deg_line = "B.Tech / B.E / BCA / MCA (Tech) — Open to All Colleges (Tier 2/3)"
         else:
             deg_line = "Any Degree / Branch (B.Tech/BE/BCA/MCA/B.Sc CS) — Open to All Colleges"
 
         if self.is_internship:
-            batch_line = "2026 / 2027 / 2028 Batches (College Enrolled)"
-            year_status = "✅ 2nd, 3rd & 4th Year Students Eligible (WFH / Flexible)"
+            batch_line = "2025 / 2026 / 2027 / 2028 / 2029 Batches"
+            year_status = "✅ 1st, 2nd, 3rd & 4th Year Students Can Apply (WFH / Flexible)"
         else:
-            batch_line = "2025 / 2026 / Past Graduates (0–1+ yrs exp)"
-            year_status = "⚠️ 2nd & 3rd years not eligible (Graduates / Final Year only)"
+            batch_line = "2025 / 2026 / Recent Batches (0–1+ yrs exp)"
+            year_status = "🎓 Final Year (4th Yr) & Graduates Eligible"
 
         skills_str = " • ".join(self.skills_required) if self.skills_required else "Python • Web Development • REST APIs • Git"
         clean_skills = html.escape(skills_str)
