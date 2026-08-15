@@ -614,24 +614,43 @@ class JobService:
     def _is_high_quality_stipend(self, raw_stipend: str) -> bool:
         """
         Guarantees high-quality compensation.
-        Strictly rejects unpaid, volunteer, performance-based, or low stipend (< ₹10,000/mo) roles.
+        Strictly rejects unpaid, volunteer, performance-based, incentive-only, or low stipend (< ₹10,000/mo) roles.
         """
         s = (raw_stipend or "").lower().strip()
         if not s:
-            return True  # Default calculated competitive stipend applies
-        if any(unpaid in s for unpaid in ["unpaid", "volunteer", "performance based", "incentive only"]):
+            return True  # Default calculated competitive stipend applies (₹10,000 - ₹35,000/month)
+        
+        # Unpaid / Volunteer / Low-quality flags
+        unpaid_terms = [
+            "unpaid", "un-paid", "volunteer", "performance based", "performance-based",
+            "incentive only", "incentives only", "expenses only", "certificate only", "no stipend"
+        ]
+        if any(unpaid in s for unpaid in unpaid_terms):
             return False
-        if re.search(r"\b0\s*/\s*month", s) or re.search(r"₹\s*0\b", s):
+            
+        if re.search(r"\b0\s*/\s*month", s) or re.search(r"₹\s*0\b", s) or re.search(r"\brs\.?\s*0\b", s):
             return False
-        # Foreign currency (USD, EUR, GBP) stipends are always high quality
+            
+        # Foreign currency (USD, EUR, GBP) stipends are always >= ₹10,000/mo
         if any(cur in s for cur in ["$", "€", "£", "usd", "eur", "gbp"]):
             return True
+
+        # Check for 'k' notation (e.g. 5k, 8k, 10k, 15k, 10-20k)
+        if "k" in s:
+            k_nums = [float(x) for x in re.findall(r"([0-9]+(?:\.[0-9]+)?)", s)]
+            if k_nums:
+                max_k = max(k_nums)
+                if max_k < 10:
+                    return False
+                return True
+
+        # Extract numeric amounts (e.g. 5000, 8000, 15000, 25000)
         nums = [int(m.replace(",", "")) for m in re.findall(r"[0-9]+(?:,[0-9]+)*", s)]
         if nums:
             max_val = max(nums)
-            # Filter out low stipends (< ₹10,000 / month)
-            if max_val < 10000 and "k" not in s:
+            if max_val < 10000:
                 return False
+                
         return True
 
     def _apply_internship_to_job_ratio_filter(

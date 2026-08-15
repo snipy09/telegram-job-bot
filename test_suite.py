@@ -78,6 +78,21 @@ class TestJobUpdatesAndChannel(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.db.can_post_to_whatsapp_today(max_daily=20))
         self.assertEqual(self.db.get_whatsapp_today_posts_count(), 20)
 
+    def test_minimum_10k_stipend_filter(self):
+        """Test strict minimum 10k stipend requirement."""
+        # Must reject < 10k
+        self.assertFalse(self.job_service._is_high_quality_stipend("₹5,000 /month"))
+        self.assertFalse(self.job_service._is_high_quality_stipend("₹8,000 /month"))
+        self.assertFalse(self.job_service._is_high_quality_stipend("5k-8k /month"))
+        self.assertFalse(self.job_service._is_high_quality_stipend("Unpaid"))
+        self.assertFalse(self.job_service._is_high_quality_stipend("Performance based"))
+
+        # Must accept >= 10k
+        self.assertTrue(self.job_service._is_high_quality_stipend("₹10,000 /month"))
+        self.assertTrue(self.job_service._is_high_quality_stipend("₹15,000 - 25,000 /month"))
+        self.assertTrue(self.job_service._is_high_quality_stipend("10k - 20k /month"))
+        self.assertTrue(self.job_service._is_high_quality_stipend("$500 /month"))
+
 
 if __name__ == "__main__":
     unittest.main()
