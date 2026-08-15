@@ -410,6 +410,40 @@ class JobService:
                 return False
         return True
 
+    def _apply_degree_ratio_filter(
+        self,
+        jobs: List[Job],
+        no_degree_ratio: int = 9,
+        degree_ratio: int = 1
+    ) -> List[Job]:
+        """
+        Interleaves job feed so that 9 out of every 10 jobs (90%) do NOT require a degree.
+        Skills-first and student opportunities take 90% share.
+        """
+        no_degree_jobs = [j for j in jobs if not j.degree_required.lower().startswith("yes")]
+        degree_jobs = [j for j in jobs if j.degree_required.lower().startswith("yes")]
+
+        interleaved: List[Job] = []
+        nd_idx = 0
+        d_idx = 0
+
+        while nd_idx < len(no_degree_jobs) or d_idx < len(degree_jobs):
+            # Take up to 9 no-degree required jobs
+            for _ in range(no_degree_ratio):
+                if nd_idx < len(no_degree_jobs):
+                    interleaved.append(no_degree_jobs[nd_idx])
+                    nd_idx += 1
+            # Take 1 degree-required job
+            for _ in range(degree_ratio):
+                if d_idx < len(degree_jobs):
+                    interleaved.append(degree_jobs[d_idx])
+                    d_idx += 1
+            # If no more no-degree jobs remain, stop to maintain the ratio
+            if nd_idx >= len(no_degree_jobs) and d_idx >= len(degree_jobs):
+                break
+
+        return interleaved
+
     def _compute_selection_score(self, title: str, is_internship: bool, age_hours: float, source: str) -> int:
         """Calculate Selection Probability Score prioritizing Top 500 companies & student accessibility."""
         score = 0
@@ -1028,10 +1062,13 @@ class JobService:
                     # Rank by Selection Probability Score (highest odds first)
                     all_jobs.sort(key=lambda j: (j.selection_score, -j.age_hours), reverse=True)
 
+                    # Apply 9:1 Degree Ratio Filter (9 out of 10 jobs do NOT require a degree)
+                    all_jobs = self._apply_degree_ratio_filter(all_jobs, no_degree_ratio=9, degree_ratio=1)
+
                     if all_jobs:
                         self._cached_jobs = all_jobs
                         self._last_fetched_time = time.time()
-                        logger.info(f"Ingested {len(all_jobs)} verified CS opportunities across sources.")
+                        logger.info(f"Ingested {len(all_jobs)} verified CS opportunities (9:1 no-degree ratio applied).")
 
                     jobs = self._cached_jobs
 
