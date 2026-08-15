@@ -1,0 +1,18 @@
+services:
+  - type: worker
+    name: telegram-job-broadcaster
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    autoDeploy: true
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHANNEL_ID
+        value: "@theflashjobupdates"
+      - key: ALERT_CHECK_INTERVAL_MINUTES
+        value: "2"
+      - key: CHANNEL_POST_INTERVAL_MINUTES
+        value: "2"
+      - key: MAX_JOB_AGE_HOURS
+        value: "2"

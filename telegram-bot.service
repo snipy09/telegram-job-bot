@@ -1,0 +1,17 @@
+[Unit]
+Description=24x7 Telegram Job Updates Broadcaster Bot
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/telegram
+ExecStart=/home/ubuntu/telegram/venv/bin/python bot.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+EnvironmentFile=/home/ubuntu/telegram/.env
+
+[Install]
+WantedBy=multi-user.target

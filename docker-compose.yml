@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  telegram-job-bot:
+    build: .
+    container_name: telegram_job_bot
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./jobs_bot.db:/app/jobs_bot.db
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
