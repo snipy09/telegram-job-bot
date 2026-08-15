@@ -26,6 +26,6 @@ gcloud run deploy "$SERVICE_NAME" \
     --max-instances 1 \
     --memory 512Mi \
     --cpu 1 \
-    --set-env-vars TELEGRAM_BOT_TOKEN="8693427934:AAE5wFzwl-02uojLpnmFz9YLUW-KWGCHgrU",TELEGRAM_CHANNEL_ID="@theflashjobupdates",ALERT_CHECK_INTERVAL_MINUTES="2",MAX_JOB_AGE_HOURS="2"
+    --set-env-vars TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN}",TELEGRAM_CHANNEL_ID="@theflashjobupdates",ALERT_CHECK_INTERVAL_MINUTES="2",MAX_JOB_AGE_HOURS="2"
 
 echo "=== Successfully Deployed to Google Cloud Run! Running 24x7. ==="
