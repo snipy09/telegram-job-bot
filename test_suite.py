@@ -54,10 +54,10 @@ class TestJobUpdatesAndChannel(unittest.IsolatedAsyncioTestCase):
         html_msg = first_job.to_telegram_html()
         self.assertTrue("ALERT" in html_msg)
         self.assertTrue("🏢" in html_msg)
-        self.assertTrue("QUICK SUMMARY" in html_msg)
-        self.assertTrue("Eligibility & College:" in html_msg)
-        self.assertTrue("Core Skills" in html_msg)
-        self.assertTrue("CLICK HERE TO APPLY DIRECTLY" in html_msg)
+        self.assertTrue("Quick Overview:" in html_msg)
+        self.assertTrue("Eligibility:" in html_msg)
+        self.assertTrue("Core Skills:" in html_msg)
+        self.assertTrue("Click Here to Apply Directly" in html_msg)
 
 
 if __name__ == "__main__":

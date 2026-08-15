@@ -183,8 +183,8 @@ class Job:
 
     def to_telegram_html(self, *args, **kwargs) -> str:
         """
-        Format job card specifically tailored for Indian engineering students in Tier-2/3 colleges (Years 1-4).
-        Highlights part-time, internship, or full-time status, skills-first hiring, and 10/10 quality rating.
+        Format sleek, aesthetic job card tailored for mobile Telegram viewing.
+        Removes long dash dividers to prevent ugly multi-line breaks.
         """
         if self.is_part_time:
             alert_type = "PART-TIME ALERT"
@@ -195,35 +195,25 @@ class Job:
 
         loc_clean = self.location if self.location else "Remote (India)"
         loc_upper = "REMOTE" if "remote" in loc_clean.lower() else loc_clean.upper()
-        header = f"💼 <b>{alert_type}</b> ─── 🌐 <b>{loc_upper}</b>"
+        header = f"💼 <b>{alert_type}</b> • 🌐 <b>{loc_upper}</b>"
 
         clean_title = html.escape(self.title)
         clean_company = html.escape(self.company)
         clean_loc = html.escape(loc_clean)
-
-        # Posted time format
-        if self.age_hours < 1.0:
-            clean_time = "Fresh Drop"
-        else:
-            clean_time = html.escape(self.get_formatted_posted_time())
-
         clean_salary = html.escape(self.salary)
 
-        # Format eligibility bullet points tailored for 1st-4th Year Indian college students
+        # Eligibility line
         if self.degree_required.lower().startswith("yes"):
-            deg_line = "B.Tech / B.E / BCA / MCA (Tech) — Open to All Colleges (Tier 2/3)"
+            deg_line = "B.Tech / BE / BCA / MCA (Open to Tier 2/3)"
         else:
-            deg_line = "Any Degree / Branch (B.Tech/BE/BCA/MCA/B.Sc CS) — Open to All Colleges"
+            deg_line = "Any Degree / Branch (Open to All Colleges)"
 
         if self.is_part_time:
-            batch_line = "2025 / 2026 / 2027 / 2028 / 2029 Batches"
-            year_status = "✅ 1st, 2nd, 3rd & 4th Year Students Eligible (Part-Time / Flexible WFH)"
+            batch_line = "1st, 2nd, 3rd & 4th Year (Batches 2025–2029)"
         elif self.is_internship:
-            batch_line = "2025 / 2026 / 2027 / 2028 / 2029 Batches"
-            year_status = "✅ 1st, 2nd, 3rd & 4th Year Students Can Apply (WFH / Flexible)"
+            batch_line = "1st, 2nd, 3rd & 4th Year (Batches 2025–2029)"
         else:
-            batch_line = "2025 / 2026 / Recent Batches (0–1+ yrs exp)"
-            year_status = "🎓 Final Year (4th Yr) & Graduates Eligible"
+            batch_line = "2025 / 2026 Batches & Graduates (0–1+ yrs)"
 
         skills_str = " • ".join(self.skills_required) if self.skills_required else "Python • Web Development • REST APIs • Git"
         clean_skills = html.escape(skills_str)
@@ -233,17 +223,12 @@ class Job:
             f"{header}\n\n"
             f"<b>{clean_title}</b>\n"
             f"🏢 <b>{clean_company}</b>\n\n"
-            f"💰 {clean_salary}  |  📍 {clean_loc}  |  ⭐ 10/10  |  ⏱ {clean_time}\n\n"
-            f"──────── 📌 <b>QUICK SUMMARY</b> ────────\n\n"
-            f"⭐ <b>Quality Rating:</b> 10/10 (Skills-First • Verified Pay • Open to Tier 2/3)\n\n"
-            f"🎓 <b>Eligibility & College:</b>\n"
-            f"└ {deg_line}\n"
-            f"└ {batch_line}\n"
-            f"└ {year_status}\n\n"
-            f"⚡ <b>Core Skills (Skill-First Selection):</b>\n"
-            f"└ {clean_skills}\n\n"
-            f"─────────────────────────────────\n\n"
-            f"🔗 <a href=\"{clean_url}\"><b>CLICK HERE TO APPLY DIRECTLY</b></a>"
+            f"💰 {clean_salary}  •  📍 {clean_loc}  •  ⭐ 10/10\n\n"
+            f"📌 <b>Quick Overview:</b>\n"
+            f"• 🎓 <b>Eligibility:</b> {deg_line}\n"
+            f"• 🎯 <b>Eligible Batches:</b> {batch_line}\n"
+            f"• ⚡ <b>Core Skills:</b> {clean_skills}\n\n"
+            f"🔗 <a href=\"{clean_url}\"><b>Click Here to Apply Directly</b></a>"
         )
         return template
 
