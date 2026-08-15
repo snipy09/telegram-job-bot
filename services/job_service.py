@@ -24,8 +24,11 @@ from datetime import datetime, timezone
 from typing import List, Optional, Tuple, Any
 from dataclasses import dataclass, field
 import xml.etree.ElementTree as ET
+import warnings
 import httpx
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
+
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 from config import HTTP_USER_AGENT, JOBS_CACHE_TTL_SECONDS, JOBS_PER_PAGE, MAX_JOB_AGE_HOURS
 from services.sources import (
@@ -877,29 +880,43 @@ class JobService:
         return jobs
 
     async def _fetch_weworkremotely(self, client: httpx.AsyncClient) -> List[Job]:
-        """Scrape We Work Remotely RSS feeds for live programming & devops jobs."""
+        """Scrape We Work Remotely, Himalayas, and Nodesk RSS feeds for live startup & programming jobs."""
         jobs: List[Job] = []
         for feed_url in WWR_FEEDS:
             try:
                 resp = await client.get(feed_url, timeout=10.0)
                 if resp.status_code == 200:
-                    root = ET.fromstring(resp.text)
-                    for item in root.findall("./channel/item"):
-                        raw_title = item.findtext("title", "").strip()
-                        link = item.findtext("link", "").strip()
-                        pub_date = item.findtext("pubDate", "").strip()
-                        region = item.findtext("region", "Remote").strip()
-                        description = item.findtext("description", "")
+                    soup = BeautifulSoup(resp.text, "html.parser")
+                    items = soup.find_all("item")
+                    for item in items:
+                        title_tag = item.find("title")
+                        link_tag = item.find("link")
+                        pub_tag = item.find("pubdate") or item.find("published") or item.find("dc:date")
+                        region_tag = item.find("region") or item.find("location")
+                        desc_tag = item.find("description")
+
+                        raw_title = title_tag.get_text(strip=True) if title_tag else ""
+                        link = link_tag.get_text(strip=True) if link_tag else ""
+                        if not link and link_tag and link_tag.get("href"):
+                            link = link_tag.get("href")
+
+                        pub_date = pub_tag.get_text(strip=True) if pub_tag else ""
+                        region = region_tag.get_text(strip=True) if region_tag else "Remote"
+                        description = desc_tag.get_text(strip=True) if desc_tag else ""
 
                         if not raw_title or not link:
                             continue
 
-                        company = "Startup"
+                        company = "Tech Startup"
                         title = raw_title
                         if ":" in raw_title:
                             parts = raw_title.split(":", 1)
                             company = parts[0].strip()
                             title = parts[1].strip()
+                        elif " at " in raw_title:
+                            parts = raw_title.split(" at ", 1)
+                            title = parts[0].strip()
+                            company = parts[1].strip()
 
                         is_eligible, is_intern = self._classify_role(title, region, description)
                         if not is_eligible:
@@ -912,7 +929,7 @@ class JobService:
                             title, description, is_internship=is_intern
                         )
                         salary = self._calculate_specific_salary(title, "", is_intern, clean_loc)
-                        score = self._compute_selection_score(title, is_intern, age_hours, "We Work Remotely")
+                        score = self._compute_selection_score(title, is_intern, age_hours, "Startup Jobs")
 
                         jobs.append(Job(
                             id=generate_job_id(company, title, link),
@@ -932,10 +949,10 @@ class JobService:
                             age_hours=age_hours,
                             selection_score=score,
                             skills_required=skills,
-                            source="We Work Remotely"
+                            source="Startup Jobs Network"
                         ))
             except Exception as e:
-                logger.warning(f"WeWorkRemotely scrape error on {feed_url}: {e}")
+                logger.warning(f"Startup RSS scrape error on {feed_url}: {e}")
         return jobs
 
     async def _fetch_remotive(self, client: httpx.AsyncClient) -> List[Job]:

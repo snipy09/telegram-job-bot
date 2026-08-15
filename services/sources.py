@@ -312,9 +312,10 @@ LEVER_SOURCES = [
     {"name": "WorkOS", "slug": "workos", "category": "Enterprise Ready Features"}
 ]
 
-# 5. Remote Tech Aggregator Endpoints & Direct Feed Streams (20 Specialized Streams)
+# 5. Remote Tech & Startup Platforms (25 Dedicated Startup Job Platforms & Feed Streams)
 REMOTE_AGGREGATOR_URLS = [
-    # We Work Remotely Streams
+    # We Work Remotely (WWR) Startup & Tech Feeds
+    {"name": "WWR All Programming", "url": "https://weworkremotely.com/categories/remote-programming-jobs.rss", "type": "rss"},
     {"name": "WWR Fullstack", "url": "https://weworkremotely.com/categories/remote-full-stack-programming-jobs.rss", "type": "rss"},
     {"name": "WWR Frontend", "url": "https://weworkremotely.com/categories/remote-front-end-programming-jobs.rss", "type": "rss"},
     {"name": "WWR Backend", "url": "https://weworkremotely.com/categories/remote-back-end-programming-jobs.rss", "type": "rss"},
@@ -322,16 +323,25 @@ REMOTE_AGGREGATOR_URLS = [
     {"name": "WWR Data & AI", "url": "https://weworkremotely.com/categories/remote-data-science-jobs.rss", "type": "rss"},
     {"name": "WWR Mobile", "url": "https://weworkremotely.com/categories/remote-mobile-app-development-jobs.rss", "type": "rss"},
     
-    # Remotive Engineering Endpoints
+    # Himalayas Remote Startups (100+ Live Tech Roles)
+    {"name": "Himalayas Remote Startups", "url": "https://himalayas.app/jobs/rss", "type": "rss"},
+    
+    # Nodesk Remote Startups
+    {"name": "Nodesk Remote Startups", "url": "https://nodesk.co/remote-jobs/index.xml", "type": "rss"},
+
+    # Remotive Startup & Engineering Streams
+    {"name": "Remotive Startups", "url": "https://remotive.com/api/remote-jobs?category=software-dev&search=startup", "type": "remotive"},
     {"name": "Remotive Software Dev", "url": "https://remotive.com/api/remote-jobs?category=software-dev&limit=25", "type": "remotive"},
     {"name": "Remotive QA", "url": "https://remotive.com/api/remote-jobs?category=qa&limit=25", "type": "remotive"},
     {"name": "Remotive DevOps", "url": "https://remotive.com/api/remote-jobs?category=devops&limit=25", "type": "remotive"},
     {"name": "Remotive Data", "url": "https://remotive.com/api/remote-jobs?category=data&limit=25", "type": "remotive"},
     
-    # RemoteOK Developer API
+    # RemoteOK Developer & Startup API
     {"name": "RemoteOK Dev", "url": "https://remoteok.com/api", "type": "remoteok"},
     
-    # Jobicy Remote Engineering Feeds
+    # Jobicy Startup & Engineering Feeds
+    {"name": "Jobicy Startups", "url": "https://jobicy.com/api/v2/remote-jobs?count=25&tag=startup", "type": "jobicy"},
+    {"name": "Jobicy Junior Roles", "url": "https://jobicy.com/api/v2/remote-jobs?count=25&tag=junior", "type": "jobicy"},
     {"name": "Jobicy Engineering", "url": "https://jobicy.com/api/v2/remote-jobs?count=25&tag=engineering", "type": "jobicy"},
     {"name": "Jobicy Dev", "url": "https://jobicy.com/api/v2/remote-jobs?count=25&tag=dev", "type": "jobicy"},
     {"name": "Jobicy React", "url": "https://jobicy.com/api/v2/remote-jobs?count=25&tag=react", "type": "jobicy"},
@@ -340,7 +350,7 @@ REMOTE_AGGREGATOR_URLS = [
     {"name": "Jobicy Golang", "url": "https://jobicy.com/api/v2/remote-jobs?count=25&tag=golang", "type": "jobicy"},
     {"name": "Jobicy Fullstack", "url": "https://jobicy.com/api/v2/remote-jobs?count=25&tag=fullstack", "type": "jobicy"},
     
-    # Arbeitnow European & Global Remote API
+    # Arbeitnow Global Remote Tech API
     {"name": "Arbeitnow Remote", "url": "https://www.arbeitnow.com/api/job-board-api", "type": "arbeitnow"}
 ]
 
