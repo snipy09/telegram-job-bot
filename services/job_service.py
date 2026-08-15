@@ -42,31 +42,59 @@ from services.sources import (
 
 logger = logging.getLogger(__name__)
 
-# Computer Science & Tech Domain Title Keywords
+# Computer Science & Tech Domain Title Keywords (Comprehensive Multi-Domain Coverage)
 CS_TITLE_KEYWORDS = [
-    "software", "developer", "engineer", "frontend", "front-end", "backend",
-    "back-end", "full stack", "fullstack", "web developer", "python", "javascript",
-    "typescript", "react", "node", "java", "c++", "c#", ".net", "golang", "rust",
-    "mobile", "ios", "android", "flutter", "data", "ai", "machine learning",
-    "devops", "cloud", "qa", "quality assurance", "sdet", "test automation",
-    "cybersecurity", "security", "it support", "programmer", "coding", "trainee",
-    "intern", "internship", "co-op", "apprentice", "part-time", "part time",
-    "contract", "contractor", "freelance"
+    # 1. Core CSE & Software Engineering
+    "software", "developer", "engineer", "sde", "swe", "software development",
+    "full stack", "fullstack", "backend", "back-end", "frontend", "front-end",
+    "web developer", "web development", "mobile developer", "mobile app", "ios", "android",
+    "flutter", "react native", "systems engineer", "embedded systems", "embedded",
+    "firmware", "qa", "quality assurance", "sdet", "test automation", "test engineer",
+
+    # 2. Artificial Intelligence & Machine Learning
+    "ai engineer", "ai developer", "artificial intelligence", "machine learning",
+    "ml engineer", "mle", "mlops", "ai research", "research scientist", "research engineer",
+    "nlp", "natural language processing", "llm", "large language model",
+    "computer vision", "cv engineer", "generative ai", "genai", "gen ai",
+    "prompt engineer", "robotics", "robotics engineer", "autonomous systems",
+
+    # 3. Data & Analytics
+    "data scientist", "data science", "data engineer", "data engineering",
+    "data analyst", "data analytics", "bi developer", "business intelligence",
+    "big data", "database administrator", "dba", "database engineer",
+
+    # 4. Infrastructure, Cloud & Security
+    "cloud engineer", "cloud architect", "cloud solutions", "solutions architect",
+    "devops", "platform engineer", "site reliability", "sre", "cybersecurity",
+    "information security", "infosec", "penetration tester", "pen tester", "ethical hacker",
+    "security engineer", "security analyst", "network engineer", "systems administrator",
+    "sysadmin", "it support",
+
+    # 5. Product & Specialized Tech
+    "technical product manager", "product manager", "associate product manager", "apm",
+    "blockchain", "web3", "smart contract", "solidity", "game developer",
+    "game programmer", "graphics programmer", "unity developer", "unity", "unreal engine",
+    "unreal", "ar/vr", "ar engineer", "vr engineer", "xr developer", "spatial computing",
+
+    # Core Programming Stacks & Employment Types
+    "python", "javascript", "typescript", "react", "node", "java", "c++", "c#",
+    ".net", "golang", "rust", "programmer", "coding", "trainee", "intern",
+    "internship", "co-op", "apprentice", "part-time", "part time", "contract", "contractor", "freelance"
 ]
 
 # Non-tech roles to strictly exclude
 NON_TECH_EXCLUSIONS = [
-    "copywriter", "sales", "content writer", "account executive", "business development",
-    "office assistant", "receptionist", "recruiter", "hr ", "marketing manager", "bell person",
+    "copywriter", "sales executive", "content writer", "account executive", "business development representative",
+    "office assistant", "receptionist", "recruiter", "hr executive", "bell person",
     "room attendant", "porter", "locator", "driver", "cleaner", "bartender", "server", "chef",
     "customer support representative", "telemarketer", "housekeeper", "waiter", "waitress",
-    "counsel", "legal", "policy", "communications manager", "accountant", "bookkeeper"
+    "legal counsel", "accountant", "bookkeeper"
 ]
 
 # Senior / Lead / Experienced exclusions - STRICTLY ZERO SENIOR ROLES
 SENIOR_EXCLUSIONS = [
     "senior", "sr.", "sr ", "staff", "principal", "lead", "director", "vp",
-    "head of", "chief", "architect", "manager", "5+ years", "6+ years", "7+ years", "8+ years", "10+ years",
+    "head of", "chief", "5+ years", "6+ years", "7+ years", "8+ years", "10+ years",
     "3+ years", "4+ years", "3-5 years", "4-6 years", "5-8 years",
     "level iii", "level iv", "level v", "engineer iii", "engineer iv", "engineer v",
     "level 3", "level 4", "level 5", " iii", " iv", " v ", "experienced", "mid-senior", "expert"
@@ -78,13 +106,35 @@ INTERNSHIP_KEYWORDS = [
     "apprentice", "apprenticeship", "student", "working student", "summer intern", "winter intern"
 ]
 
-# Tech skills detection dictionary
+# Tech skills detection dictionary across all 5 domains
 KNOWN_SKILLS = [
-    "Python", "JavaScript", "TypeScript", "React", "Node.js", "Java", "C++",
-    "Golang", "Rust", "HTML/CSS", "Next.js", "Django", "Flask", "FastAPI",
-    "SQL", "PostgreSQL", "MongoDB", "Docker", "Kubernetes", "AWS", "GCP",
-    "Git", "REST APIs", "GraphQL", "Machine Learning", "AI", "Tailwind CSS",
-    "Linux", "DevOps", "CI/CD", "Data Structures & Algorithms"
+    # Core & Web
+    "Python", "JavaScript", "TypeScript", "React", "Node.js", "Java", "C++", "C#", ".NET",
+    "Golang", "Rust", "HTML/CSS", "Next.js", "Vue.js", "Angular", "Django", "Flask", "FastAPI",
+    "Spring Boot", "Express.js", "Tailwind CSS", "REST APIs", "GraphQL", "Git", "DSA",
+
+    # Mobile & Systems
+    "Flutter", "React Native", "Swift", "Kotlin", "Android SDK", "iOS", "Embedded C", "RTOS",
+    "Microcontrollers", "Linux Kernel", "Firmware",
+
+    # QA & SDET
+    "Selenium", "Cypress", "Playwright", "PyTest", "JUnit", "Postman", "Test Automation",
+
+    # AI, ML & Data
+    "PyTorch", "TensorFlow", "Keras", "Scikit-Learn", "Hugging Face", "LangChain", "LlamaIndex",
+    "OpenAI API", "NLP", "LLMs", "Computer Vision", "OpenCV", "YOLO", "MLOps", "MLflow",
+    "Pandas", "NumPy", "SQL", "PostgreSQL", "MongoDB", "Redis", "Apache Spark", "Hadoop",
+    "Apache Kafka", "Snowflake", "Databricks", "Power BI", "Tableau", "DuckDB", "Elasticsearch",
+
+    # Cloud, DevOps & Security
+    "Docker", "Kubernetes", "AWS", "GCP", "Azure", "Terraform", "Ansible", "CI/CD",
+    "GitHub Actions", "Linux", "SRE", "Prometheus", "Grafana", "Nginx", "Cybersecurity",
+    "Penetration Testing", "Burp Suite", "Wireshark", "OWASP", "SIEM", "Network Security",
+
+    # Specialized: Product, Web3, Gaming, XR
+    "Technical Product Management", "System Architecture", "Agile / Scrum",
+    "Blockchain", "Web3.js", "Ethers.js", "Solidity", "Smart Contracts",
+    "Unity", "Unreal Engine", "OpenGL", "WebGL", "ARKit", "ARCore", "Three.js", "ROS (Robot OS)"
 ]
 
 
@@ -389,25 +439,45 @@ class JobService:
         if any(k in t for k in ["part-time", "part time", "contract", "freelance"]):
             return "₹20,000 - ₹50,000 /month (Contract / Part-Time)"
 
-        # AI / ML / Data Roles
-        if any(k in t for k in ["ai", "machine learning", "data scientist", "data analyst", "deep learning"]):
+        # AI / ML / LLM / Data Science / Robotics
+        if any(k in t for k in ["ai", "machine learning", "mle", "mlops", "nlp", "computer vision", "cv", "robotics", "data scientist", "data engineer", "deep learning", "llm", "generative ai", "prompt engineer"]):
             return "₹5,00,000 - ₹14,00,000/year (5 - 14 LPA)"
 
-        # DevOps / Cloud / Kubernetes / Security
-        if any(k in t for k in ["devops", "cloud", "kubernetes", "security", "sre"]):
+        # Blockchain / Web3 / Smart Contracts / Solidity
+        if any(k in t for k in ["blockchain", "web3", "solidity", "smart contract", "crypto"]):
+            return "₹6,00,000 - ₹16,00,000/year (6 - 16 LPA)"
+
+        # Game Developer / Graphics Programmer / AR/VR / XR
+        if any(k in t for k in ["game", "graphics", "unity", "unreal", "ar/vr", "xr", "spatial"]):
+            return "₹4,50,000 - ₹11,00,000/year (4.5 - 11 LPA)"
+
+        # Product / Technical Product Manager / APM
+        if any(k in t for k in ["product manager", "apm", "technical product"]):
+            return "₹5,00,000 - ₹13,00,000/year (5 - 13 LPA)"
+
+        # DevOps / Cloud / Kubernetes / Security / SRE / Ethical Hacker
+        if any(k in t for k in ["devops", "cloud", "kubernetes", "security", "sre", "infosec", "penetration", "cybersecurity", "sysadmin", "network engineer"]):
             return "₹4,50,000 - ₹12,00,000/year (4.5 - 12 LPA)"
+
+        # Mobile / iOS / Android / Flutter / React Native
+        if any(k in t for k in ["mobile", "ios", "android", "flutter", "react native"]):
+            return "₹4,00,000 - ₹9,50,000/year (4 - 9.5 LPA)"
+
+        # Systems / Embedded / Firmware Developer
+        if any(k in t for k in ["embedded", "firmware", "systems engineer", "kernel"]):
+            return "₹4,00,000 - ₹10,00,000/year (4 - 10 LPA)"
 
         # Frontend / React / Web Developer
         if any(k in t for k in ["frontend", "react", "next.js", "web developer", "ui"]):
             return "₹3,50,000 - ₹8,50,000/year (3.5 - 8.5 LPA)"
 
-        # Backend / Python / Node / Java / Golang
-        if any(k in t for k in ["backend", "python", "node", "java", "golang", "c++", "c#"]):
+        # Backend / Python / Node / Java / Golang / Full Stack / SDE / SWE
+        if any(k in t for k in ["backend", "full stack", "fullstack", "sde", "swe", "software engineer", "python", "node", "java", "golang", "c++", "c#", "rust"]):
             return "₹4,00,000 - ₹10,00,000/year (4 - 10 LPA)"
 
         # QA / Testing / SDET
         if any(k in t for k in ["qa", "quality assurance", "test", "sdet", "automation"]):
-            return "₹2,50,000 - ₹6,00,000/year (2.5 - 6 LPA)"
+            return "₹3,00,000 - ₹6,50,000/year (3 - 6.5 LPA)"
 
         # Default Graduate Developer Role (Min 2 LPA)
         return "₹3,00,000 - ₹7,50,000/year (3 - 7.5 LPA)"
