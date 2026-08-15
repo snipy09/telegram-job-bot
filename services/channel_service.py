@@ -57,7 +57,8 @@ async def broadcast_jobs_to_channel(bot: Bot, limit: Optional[int] = None, force
             posted_count += 1
             logger.info(f"Successfully posted job '{job.title}' to channel {channel_id}")
 
-            await asyncio.sleep(0.5)
+            # 20-second gap between each job posting
+            await asyncio.sleep(20.0)
 
         except Exception as e:
             logger.error(f"Error posting job to channel {channel_id}: {e}")
